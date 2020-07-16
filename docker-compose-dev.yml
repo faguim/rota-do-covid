@@ -1,0 +1,72 @@
+version: '3'
+
+services:
+
+  rota-do-covid:
+    image: rota-do-covid
+    ports:
+      - "10020:10020"
+    environment:
+      - ENV_SILENT=true
+      - HOST=0.0.0.0
+      - PORT=10020
+      - NODE_ENV=development
+      - APP_NAME=rota-do-covid
+      - APP_URL=http://0.0.0.0:10020
+      - CACHE_VIEWS=false
+      - APP_KEY=HaD44SP7biItl5WJkYD3gyig4mPl69vm
+      - DB_CONNECTION=mysql
+      - DB_HOST=rota-do-covid
+      - DB_PORT=3306
+      - DB_DATABASE=rota-do-covid
+      - DB_USER=covid
+      - DB_PASSWORD=covid
+      - HASH_DRIVER=bcrypt
+    depends_on:
+      - rota-do-covid-database
+    restart: always  
+    networks:
+      - rota-do-covid
+    volumes:
+      - ./src/adonisjs:/app
+      - /app/node_modules
+
+  rota-do-covid-database:
+    image: mysql:5.7
+    ports:
+      - "10021:3306"
+    volumes:
+      - rota-do-covid-database:/var/lib/mysql
+    environment:                                # will be  replaced to .env vars, as in ${DB_PASSWORD}
+      - MYSQL_DATABASE=rota-do-covid
+      - MYSQL_USER=covid
+      - MYSQL_PASSWORD=covid
+      - MYSQL_ALLOW_EMPTY_PASSWORD=no
+      - MYSQL_ROOT_PASSWORD=root
+    restart: always
+    networks:
+      - rota-do-covid
+      
+
+  rota-do-covid-database-ui:
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+      - 10022:80
+    environment:
+      - PMA_ARBITRARY=0                         # connection to any server 
+      - PMA_HOST=rota-do-covid-database
+      - PMA_PORT=3306  
+    depends_on:
+      - rota-do-covid-database
+    networks:
+      - rota-do-covid
+
+
+volumes:
+  rota-do-covid-database:
+    driver: "local"
+
+
+networks:
+  rota-do-covid:
+    driver: bridge
